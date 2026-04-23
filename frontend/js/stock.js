@@ -5,7 +5,7 @@ console.log('✅ stock.js LOADED v3 - top of file');
  * Handles inventory/stock management UI and API integration
  */
 
-const STOCK_API_URL = 'http://localhost:5000/api/stock';
+const STOCK_API_URL = '/api/stock';
 
 /**
  * Load all stock items

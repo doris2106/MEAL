@@ -181,7 +181,7 @@ async function checkAuthStatus() {
 
   try {
     // Verify token validity
-    const response = await fetch('http://localhost:5000/api/health');
+    const response = await fetch('/api/health');
     if (response.ok) {
       isAuthenticated = true;
       updateAuthUI();
@@ -255,7 +255,7 @@ async function handleLogin(e) {
   const password = document.getElementById('loginPassword').value;
 
   try {
-    const response = await fetch('http://localhost:5000/api/auth/login', {
+    const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -294,7 +294,7 @@ async function handleRegister(e) {
   };
 
   try {
-    const response = await fetch('http://localhost:5000/api/auth/register', {
+    const response = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),
@@ -322,7 +322,7 @@ async function handleRegister(e) {
  */
 async function guestLogin() {
   try {
-    const response = await fetch('http://localhost:5000/api/auth/guest-login', {
+    const response = await fetch('/api/auth/guest-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
@@ -445,7 +445,7 @@ async function handleFormSubmit(e) {
 
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch('http://localhost:5000/api/records', {
+    const response = await fetch('/api/records', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -534,7 +534,7 @@ function resetForm() {
 async function loadDashboardStats() {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch('http://localhost:5000/api/records/stats/dashboard', {
+    const response = await fetch('/api/records/stats/dashboard', {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
 
@@ -586,7 +586,7 @@ function displayMealTypes(mealTypes) {
 async function loadRecords(page = 1) {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`http://localhost:5000/api/records?page=${page}&limit=10`, {
+    const response = await fetch(`/api/records?page=${page}&limit=10`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
 
@@ -719,7 +719,7 @@ async function searchRecords() {
   try {
     const token = localStorage.getItem('token');
     const response = await fetch(
-      `http://localhost:5000/api/records/range?startDate=${startDate}&endDate=${endDate}`,
+      `/api/records/range?startDate=${startDate}&endDate=${endDate}`,
       {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
@@ -757,7 +757,7 @@ async function deleteRecord(id) {
 
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`http://localhost:5000/api/records/${id}`, {
+    const response = await fetch(`/api/records/${id}`, {
       method: 'DELETE',
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
@@ -898,7 +898,7 @@ async function loadStudentsForAttendance() {
   
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`http://localhost:5000/api/students?class=${selectedClass}`, {
+    const response = await fetch(`/api/students?class=${selectedClass}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     
@@ -1048,7 +1048,7 @@ function checkStudentModeAvailability() {
   console.log('Checking student mode availability...');
 
   // Show the button if there are students in the database
-  fetch('http://localhost:5000/api/students')
+  fetch('/api/students')
     .then(res => res.json())
     .then(data => {
       console.log('Student API response:', data);
@@ -1103,7 +1103,7 @@ async function addStudent() {
 
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch('http://localhost:5000/api/students', {
+    const response = await fetch('/api/students', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1142,7 +1142,7 @@ async function addStudent() {
 async function loadAllStudents() {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch('http://localhost:5000/api/students?active=false', {
+    const response = await fetch('/api/students?active=false', {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
 
@@ -1189,7 +1189,7 @@ async function deleteStudent(studentId) {
 
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`http://localhost:5000/api/students/${studentId}`, {
+    const response = await fetch(`/api/students/${studentId}`, {
       method: 'DELETE',
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
@@ -1217,8 +1217,8 @@ async function filterStudents() {
   try {
     const token = localStorage.getItem('token');
     const url = classFilter 
-      ? `http://localhost:5000/api/students?class=${classFilter}&active=false`
-      : 'http://localhost:5000/api/students?active=false';
+      ? `/api/students?class=${classFilter}&active=false`
+      : '/api/students?active=false';
     
     const response = await fetch(url, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
