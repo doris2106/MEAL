@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Digital Attendance & Mid-Day Meal Management</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <!-- Face API Library -->
+  <script
+    async
+    src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/dist/face-api.js"
+  ></script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container header-content">
+      <div class="logo-section">
+        <h1 class="logo">MEAL TRACKER</h1>
+        <p class="subtitle">Digital Attendance & Meal Management</p>
+      </div>
+      <nav class="nav-links">
+        <button id="authBtn" class="btn btn-auth">Login</button>
+      </nav>
+    </div>
+  </header>
+
+  <nav class="top-tab-navigation container">
+    <button class="tab-btn active" onclick="switchTab(0)">Dashboard</button>
+    <button class="tab-btn" onclick="switchTab(1)">View Records</button>
+    <button class="tab-btn" onclick="switchTab(2)">Record Data</button>
+    <button class="tab-btn" onclick="switchTab(3)">Stock Management</button>
+    <button class="tab-btn" onclick="switchTab(4)">Students</button>
+  </nav>
+
+  <!-- Auth Modal -->
+  <div id="authModal" class="modal">
+    <div class="modal-content auth-modal">
+      <span class="close">&times;</span>
+
+      <!-- Login Form -->
+      <div id="loginForm" class="auth-form active">
+        <h2>Teacher Login</h2>
+        <form id="loginFormElement">
+          <div class="form-group">
+            <label for="loginEmail">Email</label>
+            <input type="email" id="loginEmail" required />
+          </div>
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Login</button>
+          <p class="form-toggle">
+            Don't have account?
+            <a href="#" onclick="toggleAuthForms()">Register</a>
+          </p>
+          <button type="button" class="btn btn-secondary" onclick="guestLogin()">
+            Continue as Guest
+          </button>
+        </form>
+      </div>
+
+      <!-- Register Form -->
+      <div id="registerForm" class="auth-form">
+        <h2>Teacher Registration</h2>
+        <form id="registerFormElement">
+          <div class="form-group">
+            <label for="regName">Full Name</label>
+            <input type="text" id="regName" required />
+          </div>
+          <div class="form-group">
+            <label for="regEmail">Email</label>
+            <input type="email" id="regEmail" required />
+          </div>
+          <div class="form-group">
+            <label for="regPhone">Phone</label>
+            <input type="tel" id="regPhone" required />
+          </div>
+          <div class="form-group">
+            <label for="regSchool">School Name</label>
+            <input type="text" id="regSchool" required />
+          </div>
+          <div class="form-group">
+            <label for="regPassword">Password</label>
+            <input type="password" id="regPassword" required />
+          </div>
+          <div class="form-group">
+            <label for="regPasswordConfirm">Confirm Password</label>
+            <input type="password" id="regPasswordConfirm" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Register</button>
+          <p class="form-toggle">
+            Already have account?
+            <a href="#" onclick="toggleAuthForms()">Login</a>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <main class="container main-content" id="mainContent">
+    <!-- Dashboard View (tab 1) -->
+    <div id="dashboardView" class="view active">
+      <div class="dashboard-header">
+        <h2>Dashboard</h2>
+        <p>Real-time statistics and insights</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Total Students</h3>
+          <p class="stat-value" id="totalStudents">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Total Meals Served</h3>
+          <p class="stat-value" id="totalMeals">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Beneficiary Rate</h3>
+          <p class="stat-value" id="beneficiaryRate">0%</p>
+        </div>
+        <div class="stat-card">
+          <h3>Total Records</h3>
+          <p class="stat-value" id="totalRecords">0</p>
+        </div>
+      </div>
+
+      <div class="meal-types-section">
+        <h3>Most Served Meals</h3>
+        <ul id="mealTypesList" class="meals-list"></ul>
+      </div>
+    </div>
+
+    <!-- Records View (tab 2) -->
+    <div id="recordsView" class="view">
+      <div class="records-header">
+        <h2>View Records</h2>
+
+        <div class="search-section">
+          <div class="search-group">
+            <label for="searchStartDate">Start Date:</label>
+            <input type="date" id="searchStartDate" />
+          </div>
+          <div class="search-group">
+            <label for="searchEndDate">End Date:</label>
+            <input type="date" id="searchEndDate" />
+          </div>
+          <button class="btn btn-search" onclick="searchRecords()">🔍 Search</button>
+          <button class="btn btn-secondary" onclick="resetSearch()">Reset</button>
+        </div>
+      </div>
+
+      <div class="records-table-container">
+        <table class="records-table" id="recordsTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Class 1-5</th>
+              <th>Class 6-8</th>
+              <th>Total Students</th>
+              <th>Detected</th>
+              <th>Total Meals</th>
+              <th>Meal Type</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="recordsTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="pagination" id="pagination"></div>
+    </div>
+
+    <!-- Form View (tab 3) -->
+    <div id="formView" class="view">
+      <div class="form-container">
+        <h2>Record Attendance & Meal Data</h2>
+
+        <form id="mainForm" class="meal-form">
+          <!-- Date Selector -->
+          <div class="form-section">
+
+            <h3> Date</h3>
+            <div class="form-group">
+              <label for="recordDate">Select Date</label>
+              <input type="date" id="recordDate" required />
+            </div>
+
+            <!-- Attendance Mode Toggle -->
+            <div class="form-group">
+              <label>Attendance Mode:</label>
+              <div class="attendance-mode-options">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="modeCount" name="attendanceMode" onclick="selectAttendanceMode('count')">
+                  <span>Total student count wise attendance</span>
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="modeStudentWise" name="attendanceMode" onclick="selectAttendanceMode('student-wise')">
+                  <span>Names and to mark absent/present</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+            <!-- Student-wise Attendance Section -->
+            <div class="form-section student-attendance-section" id="studentAttendanceSection" style="display: none;">
+              <h3>Student-wise Attendance</h3>
+              <div class="form-group">
+                <label for="attendanceClassSelect">Select Class for Attendance</label>
+                <select id="attendanceClassSelect" onchange="loadStudentsForAttendance()">
+                  <option value="">-- Select Class --</option>
+                  <option value="1">Class 1</option>
+                  <option value="2">Class 2</option>
+                  <option value="3">Class 3</option>
+                  <option value="4">Class 4</option>
+                  <option value="5">Class 5</option>
+                  <option value="6">Class 6</option>
+                  <option value="7">Class 7</option>
+                  <option value="8">Class 8</option>
+                </select>
+              </div>
+              <div id="studentListContainer" class="student-list-container">
+                <!-- Student list will be dynamically loaded here -->
+                <p class="no-students-message">Select a class to load students</p>
+              </div>
+              <div class="attendance-summary" id="attendanceSummary" style="display: none;">
+                <div class="summary-card present">
+                  <span class="summary-label">Present</span>
+                  <span class="summary-value" id="presentCount">0</span>
+                </div>
+                <div class="summary-card absent">
+                  <span class="summary-label">Absent</span>
+                  <span class="summary-value" id="absentCount">0</span>
+                </div>
+                <div class="summary-card total">
+                  <span class="summary-label">Total</span>
+                  <span class="summary-value" id="totalCount">0</span>
+                </div>
+                <div class="summary-card" style="background-color: #e6f7ff; color: #0050b3; border: 1px solid #91d5ff;">
+                  <span class="summary-label" style="color: #0050b3;">Meal Beneficiaries</span>
+                  <span class="summary-value" id="generatedMealBeneficiariesCount">0</span>
+                </div>
+              </div>
+              <!-- Toggle button removed: now handled by checkboxes above -->
+            </div>
+
+            <!-- Count-based mode toggle (shown when in count mode) -->
+            <div class="form-section count-mode-section" id="countModeSection" style="display: none;">
+              <h3>Count-based Attendance</h3>
+              <div class="form-group" style="margin-bottom: 2rem;">
+                <label>Select Class Group:</label>
+                <div class="class-group-options">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="classGroup1to5" name="classGroup" onchange="updateClassGroupVisibility()" />
+                    <span>Class 1-5</span>
+                  </label>
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="classGroup6to8" name="classGroup" onchange="updateClassGroupVisibility()" />
+                    <span>Class 6-8</span>
+                  </label>
+                </div>
+              </div>
+
+              <div id="group1to5Students" class="input-grid" style="display:none;">
+              <div class="form-group">
+                <label for="class1Students">Class 1</label>
+                <input type="number" id="class1Students" min="0" max="100" value="0" />
+              </div>
+              <div class="form-group">
+                <label for="class2Students">Class 2</label>
+                <input type="number" id="class2Students" min="0" max="100" value="0" />
+              </div>
+              <div class="form-group">
+                <label for="class3Students">Class 3</label>
+                <input type="number" id="class3Students" min="0" max="100" value="0" />
+              </div>
+              <div class="form-group">
+                <label for="class4Students">Class 4</label>
+                <input type="number" id="class4Students" min="0" max="100" value="0" />
+              </div>
+              <div class="form-group">
+                <label for="class5Students">Class 5</label>
+                <input type="number" id="class5Students" min="0" max="100" value="0" />
+              </div>
+              </div>
+
+              <div id="group6to8Students" class="input-grid" style="display:none;">
+              <div class="form-group">
+                <label for="class6Students">Class 6</label>
+                <input type="number" id="class6Students" min="0" max="100" value="0" />
+              </div>
+              <div class="form-group">
+                <label for="class7Students">Class 7</label>
+                <input type="number" id="class7Students" min="0" max="100" value="0" />
+              </div>
+              <div class="form-group">
+                <label for="class8Students">Class 8</label>
+                <input type="number" id="class8Students" min="0" max="100" value="0" />
+              </div>
+              </div>
+          </div>
+
+          <!-- Meal Beneficiaries Section -->
+          <div class="form-section" id="mealBeneficiariesSection" style="display: none;">
+            <h3>Meal Beneficiaries per Class</h3>
+
+            <div id="group1to5Beneficiaries" class="input-grid" style="display:none;">
+              <div class="form-group">
+                <label for="class1Beneficiaries">Class 1</label>
+                <input
+                  type="number"
+                  id="class1Beneficiaries"
+                  min="0"
+                  max="100"
+                  value="0"
+                />
+              </div>
+              <div class="form-group">
+                <label for="class2Beneficiaries">Class 2</label>
+                <input
+                  type="number"
+                  id="class2Beneficiaries"
+                  min="0"
+                  max="100"
+                  value="0"
+                />
+              </div>
+              <div class="form-group">
+                <label for="class3Beneficiaries">Class 3</label>
+                <input
+                  type="number"
+                  id="class3Beneficiaries"
+                  min="0"
+                  max="100"
+                  value="0"
+                />
+              </div>
+              <div class="form-group">
+                <label for="class4Beneficiaries">Class 4</label>
+                <input
+                  type="number"
+                  id="class4Beneficiaries"
+                  min="0"
+                  max="100"
+                  value="0"
+                />
+              </div>
+              <div class="form-group">
+                <label for="class5Beneficiaries">Class 5</label>
+                <input
+                  type="number"
+                  id="class5Beneficiaries"
+                  min="0"
+                  max="100"
+                  value="0"
+                />
+              </div>
+            </div>
+
+            <div id="group6to8Beneficiaries" class="input-grid" style="display:none;">
+              <div class="form-group">
+                <label for="class6Beneficiaries">Class 6</label>
+                <input
+                  type="number"
+                  id="class6Beneficiaries"
+                  min="0"
+                  max="100"
+                  value="0"
+                />
+              </div>
+              <div class="form-group">
+                <label for="class7Beneficiaries">Class 7</label>
+                <input
+                  type="number"
+                  id="class7Beneficiaries"
+                  min="0"
+                  max="100"
+                  value="0"
+                />
+              </div>
+              <div class="form-group">
+                <label for="class8Beneficiaries">Class 8</label>
+                <input
+                  type="number"
+                  id="class8Beneficiaries"
+                  min="0"
+                  max="100"
+                  value="0"
+                />
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Face Detection Section -->
+          <div class="form-section">
+            <h3>Camera Detection</h3>
+            <p style="color: var(--gray-600); margin-bottom: 1rem; font-size: 0.95rem;">
+              Use the camera to automatically detect the number of students present. This will not overwrite your manual entries.
+            </p>
+            <div class="form-group">
+              <label for="detectedStudents">Detected Student Total</label>
+              <input
+                type="number"
+                id="detectedStudents"
+                value="0"
+                readonly
+                style="background-color: var(--gray-100); font-weight: bold; color: var(--primary);"
+              />
+            </div>
+            <button
+              type="button"
+              class="btn btn-camera"
+              id="cameraBtn"
+              onclick="openCameraModal()"
+              style="margin-top: 0.5rem;"
+            >
+              📷 Capture Attendance
+            </button>
+          </div>
+
+          <!-- Meal Type Selection -->
+          <div class="form-section">
+            <h3>Today's Meal Type</h3>
+
+            <div class="form-group">
+              <label for="mealType">Select Meal</label>
+              <select id="mealType" required>
+                <option value="">-- Select Meal Type --</option>
+                <option value="Khichdi">Khichdi</option>
+                <option value="Dal">Dal</option>
+                <option value="Rice">Rice</option>
+                <option value="Bread">Bread</option>
+                <option value="Vegetables">Vegetables</option>
+                <option value="Milk">Milk</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Notes Section -->
+          <div class="form-section">
+            <h3>Additional Notes</h3>
+
+            <div class="form-group">
+              <label for="notes">Notes (Optional)</label>
+              <textarea id="notes" rows="3" placeholder="Add any notes..."></textarea>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-large">Save Data</button>
+            <button type="reset" class="btn btn-secondary btn-large">Reset Form</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Stock Management View (tab 4) -->
+    <div id="stockView" class="view">
+      <div class="stock-header">
+        <h2>Stock Management</h2>
+        <p>Track inventory for mid-day meal items</p>
+      </div>
+
+      <!-- Add Stock Form -->
+      <div class="stock-form-container">
+        <div class="stock-form">
+          <div class="form-group">
+            <label for="stockItem">Select Item</label>
+            <select id="stockItem" required>
+              <option value="">-- Select Item --</option>
+              <option value="Rice">Rice</option>
+              <option value="Dal">Dal</option>
+              <option value="Vegetables">Vegetables</option>
+              <option value="Masala">Masala</option>
+              <option value="Oil">Oil</option>
+              <option value="Salt">Salt</option>
+              <option value="Milk">Milk</option>
+              <option value="Bread">Bread</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="stockQty">Quantity (kg)</label>
+            <input 
+              type="number" 
+              id="stockQty" 
+              placeholder="Enter quantity" 
+              min="0.1" 
+              step="0.1"
+              required 
+            />
+          </div>
+
+          <button type="button" class="btn btn-primary" onclick="addStockItem()">
+            Add Stock
+          </button>
+        </div>
+      </div>
+
+      <!-- Stock Summary Cards -->
+      <div class="stock-summary-grid">
+        <div class="stock-card">
+          <h4>Total Added</h4>
+          <p class="stock-value" id="totalAddedQty">0</p>
+        </div>
+        <div class="stock-card">
+          <h4>Total Used</h4>
+          <p class="stock-value" id="totalUsedQty">0</p>
+        </div>
+        <div class="stock-card">
+          <h4>Total Remaining</h4>
+          <p class="stock-value" id="totalRemainingQty">0</p>
+        </div>
+      </div>
+
+      <!-- Stock Table -->
+      <div class="stock-table-container">
+        <table class="stock-table" id="stockTable">
+          <thead>
+            <tr>
+              <th>Item Name</th>
+              <th>Added (kg)</th>
+              <th>Used (kg)</th>
+              <th>Remaining (kg)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="stockTableBody">
+            <tr>
+              <td colspan="5" style="text-align: center; padding: 2rem;">No stock items yet</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Student Management View (tab 5 - hidden, accessed via button) -->
+    <div id="studentManagementView" class="view">
+      <div class="student-management-header">
+        <h2>Student Management</h2>
+        <p>Add and manage student records for attendance tracking</p>
+      </div>
+
+      <!-- Add Student Form -->
+      <div class="student-form-container">
+        <div class="student-form">
+          <div class="form-group">
+            <label for="studentName">Student Name</label>
+            <input 
+              type="text" 
+              id="studentName" 
+              placeholder="Enter student name" 
+              required 
+            />
+          </div>
+          <div class="form-group">
+            <label for="studentClass">Class</label>
+            <select id="studentClass" required>
+              <option value="">-- Select Class --</option>
+              <option value="1">Class 1</option>
+              <option value="2">Class 2</option>
+              <option value="3">Class 3</option>
+              <option value="4">Class 4</option>
+              <option value="5">Class 5</option>
+              <option value="6">Class 6</option>
+              <option value="7">Class 7</option>
+              <option value="8">Class 8</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="studentRoll">Roll Number</label>
+            <input 
+              type="number" 
+              id="studentRoll" 
+              placeholder="Enter roll number" 
+              min="1" 
+              required 
+            />
+          </div>
+          <button type="button" class="btn btn-primary" onclick="addStudent()">
+            Add Student
+          </button>
+        </div>
+      </div>
+
+      <!-- Student List -->
+      <div class="student-list-container-full">
+        <h3>Registered Students</h3>
+        <div class="student-filter">
+          <label for="filterStudentClass">Filter by Class:</label>
+          <select id="filterStudentClass" onchange="filterStudents()">
+            <option value="">All Classes</option>
+            <option value="1">Class 1</option>
+            <option value="2">Class 2</option>
+            <option value="3">Class 3</option>
+            <option value="4">Class 4</option>
+            <option value="5">Class 5</option>
+            <option value="6">Class 6</option>
+            <option value="7">Class 7</option>
+            <option value="8">Class 8</option>
+          </select>
+        </div>
+        <table class="student-table" id="studentTable">
+          <thead>
+            <tr>
+              <th>Roll No.</th>
+              <th>Name</th>
+              <th>Class</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="studentTableBody">
+            <tr>
+              <td colspan="4" style="text-align: center; padding: 2rem;">No students added yet</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Camera Modal -->
+  <div id="cameraModal" class="modal">
+    <div class="modal-content camera-modal">
+      <span class="close" onclick="closeCameraModal()">&times;</span>
+
+      <h2>Capture Attendance</h2>
+
+      <div class="camera-container">
+        <video id="videoFeed" class="video-feed" autoplay muted playsinline></video>
+        <canvas id="canvasOutput" class="canvas-output" style="display: none"></canvas>
+      </div>
+
+      <div class="camera-controls">
+        <button type="button" class="btn btn-primary" onclick="capturePhoto()">
+          📸 Capture Photo
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="closeCameraModal()">
+          ✕ Cancel
+        </button>
+      </div>
+
+      <div id="detectionResult" class="detection-result" style="display: none">
+        <p id="detectionMessage"></p>
+      </div>
+
+      <div id="loadingSpinner" class="loading-spinner" style="display: none">
+        <div class="spinner"></div>
+        <p>Detecting faces...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert Container -->
+  <div id="alertContainer" class="alert-container"></div>
+
+  <!-- Scripts -->
+  <script src="js/api.js?v=4"></script>
+  <script src="js/faceDetection.js?v=4"></script>
+  <script src="js/stock.js?v=4"></script>
+  <script src="js/app.js?v=7"></script>
+</body>
+</html>

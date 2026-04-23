@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MEAL Tracker - Debug</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+    pre { background: #252526; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    .section { margin: 20px 0; border: 1px solid #444; padding: 15px; }
+    h2 { color: #4fc3f7; }
+    .success { color: #4caf50; }
+    .error { color: #f44336; }
+    .warn { color: #ff9800; }
+    button { padding: 10px 20px; margin: 5px; cursor: pointer; background: #4fc3f7; border: none; border-radius: 4px; color: black; }
+  </style>
+</head>
+<body>
+  <h1>MEAL Tracker - Debug Console</h1>
+  
+  <div class="section">
+    <h2>DOM Structure Check</h2>
+    <pre id="domCheck"></pre>
+  </div>
+
+  <div class="section">
+    <h2>View Elements</h2>
+    <pre id="viewsCheck"></pre>
+  </div>
+
+  <div class="section">
+    <h2>Script Loading Test</h2>
+    <button onclick="testStock()">Test loadStockItems()</button>
+    <button onclick="testSwitchTab()">Test switchTab(3)</button>
+    <pre id="testOutput"></pre>
+  </div>
+
+  <div class="section">
+    <h2>Live Console Output</h2>
+    <pre id="liveConsole" style="height: 300px; overflow-y: auto;"></pre>
+  </div>
+
+  <script>
+    // Capture console.log
+    const consoleOutput = [];
+    const originalLog = console.log;
+    console.log = function(...args) {
+      const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+      consoleOutput.push(msg);
+      const el = document.getElementById('liveConsole');
+      if (el) el.textContent = consoleOutput.slice(-50).join('\n');
+      originalLog.apply(console, args);
+    };
+
+    // Check DOM on load
+    window.addEventListener('load', () => {
+      console.log('=== DOM CHECK ===');
+      
+      // Check all .view elements
+      const views = document.querySelectorAll('.view');
+      console.log(`Found ${views.length} .view elements`);
+      views.forEach((v, i) => {
+        const isActive = v.classList.contains('active');
+        const display = window.getComputedStyle(v).display;
+        console.log(`  [${i}] id="${v.id}" active=${isActive} display=${display}`);
+      });
+
+      // Check stock elements
+      console.log('Checking stock elements:');
+      console.log('  stockView:', !!document.getElementById('stockView'));
+      console.log('  stockTableBody:', !!document.getElementById('stockTableBody'));
+      console.log('  totalAddedQty:', !!document.getElementById('totalAddedQty'));
+      console.log('  stockItem:', !!document.getElementById('stockItem'));
+
+      // Check if functions exist
+      console.log('Function checks:');
+      console.log('  switchTab:', typeof switchTab);
+      console.log('  loadStockItems:', typeof loadStockItems);
+      console.log('  displayStockItems:', typeof displayStockItems);
+    });
+
+    function testSwitchTab() {
+      console.log('\n=== TESTING switchTab(3) ===');
+      if (typeof switchTab !== 'function') {
+        console.error('switchTab function not found!');
+        return;
+      }
+      try {
+        switchTab(3);
+        console.log('switchTab(3) executed');
+      } catch (e) {
+        console.error('Error:', e.message);
+      }
+    }
+
+    function testStock() {
+      console.log('\n=== TESTING loadStockItems() ===');
+      if (typeof loadStockItems !== 'function') {
+        console.error('loadStockItems function not found!');
+        return;
+      }
+      try {
+        loadStockItems();
+      } catch (e) {
+        console.error('Error:', e.message);
+      }
+    }
+  </script>
+
+  <!-- Load scripts in same order as main app -->
+  <script src="js/api.js?v=4"></script>
+  <script src="js/faceDetection.js?v=4"></script>
+  <script src="js/stock.js?v=4"></script>
+  <script src="js/app.js?v=4"></script>
+</body>
+</html>

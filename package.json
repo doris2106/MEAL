@@ -1,0 +1,13 @@
+{
+  "name": "meal",
+  "version": "1.0.0",
+  "description": "A comprehensive full-stack web application for government schools to digitally track attendance and mid-day meal distribution. Built with the MERN stack (MongoDB, Express, Node.js, React/Vanilla JS).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx http-server ./frontend -p 8080"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
