@@ -20,12 +20,12 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-// Security middleware with CSP allowing inline event handlers
+// Security middleware with CSP allowing inline event handlers and CDN resources
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
+      scriptSrc: ["'self'", 'https://cdn.jsdelivr.net', 'https://unpkg.com'],
       scriptSrcAttr: ["'unsafe-inline'"], // Allow inline onclick handlers
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", 'data:'],
