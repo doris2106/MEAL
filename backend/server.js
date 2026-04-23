@@ -73,9 +73,9 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static frontend files from dist folder
+// Serve static frontend files from frontend folder
 const path = require('path');
-const distPath = path.join(__dirname, '../dist');
+const distPath = path.join(__dirname, '../frontend');
 app.use(express.static(distPath));
 
 // Request logging middleware
@@ -118,7 +118,10 @@ app.use('/api/records', recordRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/stock', stockRoutes);
 app.use('/api/students', studentRoutes);
-
+// Serve frontend app for all frontend routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'));
+});
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
