@@ -85,9 +85,9 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static frontend files from frontend folder
+// Serve static frontend files from dist folder (created by build process)
 const path = require('path');
-const distPath = path.join(__dirname, '../frontend');
+const distPath = path.join(__dirname, '../dist');
 app.use(express.static(distPath));
 
 // Request logging middleware
