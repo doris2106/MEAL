@@ -30,17 +30,29 @@ const allowedOrigins = [
   'http://127.0.0.1:8000',
 ];
 
-const isLocalhostOrigin = (origin) => {
+const isAllowedOrigin = (origin) => {
+  // Check if in allowed list
+  if (allowedOrigins.includes(origin)) {
+    return true;
+  }
+  
+  // Allow localhost with any port
   try {
     const url = new URL(origin);
-    return (
-      (url.hostname === 'localhost' || url.hostname === '127.0.0.1') &&
-      Number(url.port) > 0
-    );
+    if ((url.hostname === 'localhost' || url.hostname === '127.0.0.1') && url.port) {
+      return true;
+    }
+    // Allow any Render.com domain in production
+    if (url.hostname.includes('onrender.com')) {
+      return true;
+    }
   } catch {
     return false;
   }
+  
+  return false;
 };
+
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -48,7 +60,7 @@ app.use(
         // allow local file access and some dev tools
         return callback(null, true);
       }
-      if (allowedOrigins.includes(origin) || isLocalhostOrigin(origin)) {
+      if (isAllowedOrigin(origin)) {
         return callback(null, true);
       }
       return callback(new Error(`CORS policy: origin ${origin} not allowed`));
