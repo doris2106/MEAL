@@ -3,7 +3,8 @@
  * Handles all backend API communication
  */
 
-const API_BASE_URL = 'http://localhost:5000/api';
+// Use relative path so it works on any domain (localhost, Render, etc)
+const API_BASE_URL = '/api';
 
 /**
  * Generic fetch wrapper with error handling
