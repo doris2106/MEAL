@@ -196,8 +196,17 @@ async function processCapturedPhoto(photoDataUrl) {
       return null;
     }
 
-    const img = await faceapi.fetchImage(photoDataUrl);
-    console.log('Image fetched, dimensions:', img.width, 'x', img.height);
+    // Create an image element from the dataURL
+    const img = new Image();
+    img.src = photoDataUrl;
+    
+    // Wait for the image to load
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+    });
+
+    console.log('Image loaded, dimensions:', img.width, 'x', img.height);
 
     const detections = await faceapi.detectAllFaces(
       img,
