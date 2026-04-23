@@ -42,7 +42,7 @@ async function apiCall(endpoint, options = {}) {
 
 /* ===== AUTHENTICATION ENDPOINTS ===== */
 
-export const auth = {
+const auth = {
   /**
    * Register new teacher
    */
@@ -82,7 +82,7 @@ export const auth = {
 
 /* ===== RECORD ENDPOINTS ===== */
 
-export const records = {
+const records = {
   /**
    * Create new record
    */
@@ -151,7 +151,7 @@ export const records = {
 /**
  * Token management
  */
-export const tokenManager = {
+const tokenManager = {
   setToken: (token) => {
     localStorage.setItem('token', token);
   },
@@ -188,7 +188,7 @@ export const tokenManager = {
 /**
  * Local storage helpers
  */
-export const storage = {
+const storage = {
   saveFormData: (data) => {
     localStorage.setItem('formData', JSON.stringify(data));
   },
