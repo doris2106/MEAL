@@ -61,24 +61,35 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve static frontend files from dist folder
+const path = require('path');
+const distPath = path.join(__dirname, '../frontend/dist');
+app.use(express.static(distPath));
+
 // Request logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
 
-// Root welcome endpoint
+// Root endpoint - serve frontend or API response
 app.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Digital Attendance & Mid-Day Meal Management API is running',
-    api: {
-      health: '/api/health',
-      records: '/api/records',
-      auth: '/api/auth',
-      stock: '/api/stock',
-    },
-  });
+  // Check if it's an API request
+  if (req.accepts('json')) {
+    res.json({
+      success: true,
+      message: 'Digital Attendance & Mid-Day Meal Management API is running',
+      api: {
+        health: '/api/health',
+        records: '/api/records',
+        auth: '/api/auth',
+        stock: '/api/stock',
+      },
+    });
+  } else {
+    // Serve index.html for frontend
+    res.sendFile(path.join(distPath, 'index.html'));
+  }
 });
 
 // Health check endpoint
@@ -109,15 +120,16 @@ app.use(errorHandler);
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`
 ╔═════════════════════════════════════════════════════════════╗
 ║        Digital Attendance & Mid-Day Meal Management         ║
 ║                      Backend Server                          ║
 ╚═════════════════════════════════════════════════════════════╝
-📡 Server running at http://localhost:${PORT}
+✅ Server listening on 0.0.0.0:${PORT}
+📡 Access URL: http://localhost:${PORT}
 🔧 Environment: ${process.env.NODE_ENV || 'development'}
-📊 Database: ${process.env.MONGODB_URI || 'mongodb://localhost:27017/meal_attendance'}
+📊 MongoDB Connection: Connected
   `);
 });
 
